@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Cup &amp; Spoon Converter</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3B2A1E">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cup Convert">
+<style>
+  :root{
+    --flour:#FAF6ED;
+    --crust:#3B2A1E;
+    --wheat:#C79A3E;
+    --wheat-deep:#9C7527;
+    --rust:#A2472C;
+    --paper:#FFFFFF;
+    --line:#E6DCC5;
+    --muted:#7A6C55;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--flour);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(59,42,30,0.05) 1px, transparent 0);
+    background-size: 18px 18px;
+    color:var(--crust);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding: 28px 14px 60px;
+  }
+  .card{
+    width:100%;
+    max-width:420px;
+    background:var(--paper);
+    border-radius:18px;
+    box-shadow: 0 1px 2px rgba(59,42,30,0.06), 0 10px 30px rgba(59,42,30,0.10);
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+  header{
+    padding: 22px 24px 18px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .eyebrow{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    font-size:11px;
+    color:var(--wheat-deep);
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  h1{
+    margin:0;
+    font-size:26px;
+    font-weight:400;
+    letter-spacing: 0.01em;
+  }
+  .sub{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:13px;
+    color:var(--muted);
+    margin-top:6px;
+    line-height:1.4;
+  }
+  .scale-icon{
+    position:absolute;
+    top:20px; right:20px;
+    width:40px; height:40px;
+  }
+  section{ padding: 20px 24px; }
+  label{
+    display:block;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--muted);
+    margin-bottom:8px;
+    font-weight:600;
+  }
+  select, input[type=number]{
+    width:100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:16px;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background:var(--flour);
+    color:var(--crust);
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  select{
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6C55' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;
+    background-position: right 12px center;
+    background-size:18px;
+    padding-right:38px;
+  }
+  .row{ margin-bottom:16px; }
+
+  .mode-tabs{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:6px;
+    background:var(--flour);
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:4px;
+    margin-bottom:18px;
+  }
+  .mode-tabs button{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:9px 4px;
+    border-radius:7px;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .mode-tabs button.active{
+    background:var(--crust);
+    color:var(--flour);
+  }
+
+  .fracs{
+    display:grid;
+    grid-template-columns: repeat(6,1fr);
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .fracs button{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 0;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:var(--flour);
+    color:var(--crust);
+    cursor:pointer;
+    transition: all .12s ease;
+  }
+  .fracs button.active{
+    background:var(--wheat);
+    border-color:var(--wheat-deep);
+    color:var(--paper);
+  }
+  .fracs button:active{ transform: scale(0.95); }
+
+  .amount-input-row{
+    display:grid;
+    grid-template-columns: 1fr 100px;
+    gap:8px;
+  }
+  .amount-input-row select{ padding-left:10px; padding-right:32px; }
+
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .result{
+    margin-top: 4px;
+    background: var(--crust);
+    border-radius:14px;
+    padding: 20px;
+    color: var(--flour);
+    text-align:center;
+    position:relative;
+  }
+  .grams{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:40px;
+    font-weight:700;
+    line-height:1;
+    letter-spacing:-0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .unit{
+    font-size:16px;
+    font-weight:400;
+    color:var(--wheat);
+    margin-left:4px;
+  }
+  .alt{
+    margin-top:8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:13px;
+    color:#C9BC9E;
+  }
+  .fill-track{
+    height:6px;
+    border-radius:4px;
+    background:rgba(255,255,255,0.12);
+    margin-top:16px;
+    overflow:hidden;
+  }
+  .fill-bar{
+    height:100%;
+    background: linear-gradient(90deg, var(--wheat-deep), var(--wheat));
+    width:0%;
+    transition: width .25s ease;
+    border-radius:4px;
+  }
+  .toggle-row{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-top:16px;
+  }
+  .toggle-row button{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    padding:6px 14px;
+    border-radius:999px;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .toggle-row button.active{
+    background:var(--rust);
+    border-color:var(--rust);
+    color:var(--paper);
+  }
+  footer{
+    padding: 14px 24px 20px;
+    text-align:center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:11.5px;
+    color:var(--muted);
+    border-top:1px solid var(--line);
+  }
+  footer strong{ color:var(--wheat-deep); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <header>
+    <p class="eyebrow">Five Grains &middot; Kitchen Tool</p>
+    <h1>Cup &amp; Spoon Converter</h1>
+    <p class="sub">Cups, tablespoons or teaspoons to weight — and back. By ingredient, since nothing sits the same in a measure.</p>
+    <svg class="scale-icon" viewBox="0 0 40 40" fill="none">
+      <path d="M20 6v6M11 12h18M11 12l-5 11a5.2 5.2 0 0 0 10 0L11 12ZM29 12l-5 11a5.2 5.2 0 0 0 10 0L29 12Z" stroke="#C79A3E" stroke-width="1.6" stroke-linejoin="round"/>
+      <rect x="12" y="30" width="16" height="4" rx="1.5" fill="#C79A3E"/>
+    </svg>
+  </header>
+
+  <section>
+    <div class="row">
+      <label for="ingredient">Ingredient</label>
+      <select id="ingredient"></select>
+    </div>
+
+    <div class="mode-tabs" id="modeTabs">
+      <button data-mode="volumeToWeight" class="active">Volume &rarr; Weight</button>
+      <button data-mode="weightToVolume">Weight &rarr; Volume</button>
+    </div>
+
+    <div class="panel active" id="panelVolumeToWeight">
+      <label>Amount</label>
+      <div class="fracs" id="fracs"></div>
+      <div class="amount-input-row">
+        <input type="number" id="customVolume" step="0.05" min="0" placeholder="exact amount, e.g. 2.5">
+        <select id="volumeUnitIn">
+          <option value="cup">cup</option>
+          <option value="tbsp">tbsp</option>
+          <option value="tsp">tsp</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="panel" id="panelWeightToVolume">
+      <label>Amount (weight)</label>
+      <div class="amount-input-row">
+        <input type="number" id="customWeight" step="1" min="0" placeholder="e.g. 250">
+        <select id="weightUnitIn">
+          <option value="g">g</option>
+          <option value="kg">kg</option>
+          <option value="oz">oz</option>
+          <option value="lb">lb</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="result">
+      <div><span class="grams" id="gramsOut">0</span><span class="unit" id="unitOut">g</span></div>
+      <div class="alt" id="altOut">0 kg</div>
+      <div class="fill-track"><div class="fill-bar" id="fillBar"></div></div>
+
+      <div class="toggle-row" id="unitToggle">
+        <button data-u="g" class="active">g</button>
+        <button data-u="kg">kg</button>
+        <button data-u="oz">oz</button>
+        <button data-u="lb">lb</button>
+      </div>
+      <div class="toggle-row" id="volumeUnitToggle" style="display:none;">
+        <button data-u="cup" class="active">cup</button>
+        <button data-u="tbsp">tbsp</button>
+        <button data-u="tsp">tsp</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Works fully offline once saved &mdash; <strong>no data, no internet needed.</strong></footer>
+</div>
+
+<script>
+// grams per US cup (level, standard baking references)
+const INGREDIENTS = [
+  ["All-purpose flour", 120],
+  ["Bread flour", 127],
+  ["Cake flour", 114],
+  ["Whole wheat flour", 113],
+  ["Cassava flour", 128],
+  ["Maize / corn flour", 122],
+  ["Rice flour", 158],
+  ["Uncooked rice", 185],
+  ["Rolled oats", 90],
+  ["Granulated sugar", 200],
+  ["Brown sugar (packed)", 220],
+  ["Powdered / icing sugar", 120],
+  ["Cocoa powder", 90],
+  ["Butter", 227],
+  ["Margarine", 227],
+  ["Vegetable oil", 218],
+  ["Milk", 240],
+  ["Water", 236],
+  ["Honey", 340],
+  ["Table salt", 292],
+  ["Baking powder", 192],
+  ["Baking soda", 220],
+  ["Active dry yeast", 150],
+];
+
+const FRACTIONS = [
+  ["1/4", 0.25], ["1/3", 0.3333], ["1/2", 0.5],
+  ["2/3", 0.6667], ["3/4", 0.75], ["1", 1]
+];
+
+const TO_GRAMS = { g:1, kg:1000, oz:28.3495, lb:453.592 };
+// how many US cups each volume unit equals
+const TO_CUPS  = { cup:1, tbsp:1/16, tsp:1/48 };
+
+const sel = document.getElementById('ingredient');
+INGREDIENTS.forEach(([name], i) => {
+  const o = document.createElement('option');
+  o.value = i; o.textContent = name;
+  sel.appendChild(o);
+});
+
+const fracsWrap = document.getElementById('fracs');
+FRACTIONS.forEach(([label, val]) => {
+  const b = document.createElement('button');
+  b.textContent = label;
+  b.dataset.val = val;
+  b.onclick = () => {
+    document.querySelectorAll('.fracs button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('customVolume').value = '';
+    currentVolume = val;
+    render();
+  };
+  fracsWrap.appendChild(b);
+});
+document.querySelector('.fracs button:last-child').classList.add('active');
+
+let mode = 'volumeToWeight';
+let currentVolume = 1;      // amount, in whatever volumeUnitIn currently is
+let currentWeight = 250;    // amount, in whatever weightUnitIn currently is
+let volumeUnitIn = 'cup';   // unit for the volume amount typed/selected (mode A input)
+let volumeUnitOut = 'cup';  // unit to DISPLAY volume in (mode B output)
+let weightUnitOut = 'g';    // unit to DISPLAY weight in (mode A output)
+let weightUnitIn = 'g';     // unit for the weight amount typed (mode B input)
+
+document.getElementById('customVolume').addEventListener('input', (e)=>{
+  document.querySelectorAll('.fracs button').forEach(x=>x.classList.remove('active'));
+  currentVolume = parseFloat(e.target.value) || 0;
+  render();
+});
+
+document.getElementById('volumeUnitIn').addEventListener('change', (e)=>{
+  volumeUnitIn = e.target.value;
+  render();
+});
+
+document.getElementById('customWeight').addEventListener('input', (e)=>{
+  currentWeight = parseFloat(e.target.value) || 0;
+  render();
+});
+
+document.getElementById('weightUnitIn').addEventListener('change', (e)=>{
+  weightUnitIn = e.target.value;
+  render();
+});
+
+sel.addEventListener('change', render);
+
+document.getElementById('modeTabs').addEventListener('click', (e)=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#modeTabs button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  mode = e.target.dataset.mode;
+  document.getElementById('panelVolumeToWeight').classList.toggle('active', mode==='volumeToWeight');
+  document.getElementById('panelWeightToVolume').classList.toggle('active', mode==='weightToVolume');
+  document.getElementById('unitToggle').style.display = (mode==='volumeToWeight') ? 'flex' : 'none';
+  document.getElementById('volumeUnitToggle').style.display = (mode==='weightToVolume') ? 'flex' : 'none';
+  render();
+});
+
+document.getElementById('unitToggle').addEventListener('click', (e)=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#unitToggle button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  weightUnitOut = e.target.dataset.u;
+  render();
+});
+
+document.getElementById('volumeUnitToggle').addEventListener('click', (e)=>{
+  if(e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#volumeUnitToggle button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  volumeUnitOut = e.target.dataset.u;
+  render();
+});
+
+// Turns a decimal amount into a friendly "1 3/4" style string.
+function decimalToFraction(value){
+  if (value <= 0) return "0";
+  const whole = Math.floor(value + 1e-9);
+  const frac = value - whole;
+  if (frac < 0.02) return `${whole}`;
+  const denominators = [2,3,4,6,8];
+  let best = null;
+  for (const d of denominators){
+    const n = Math.round(frac * d);
+    if (n === 0 || n === d) continue;
+    const err = Math.abs(frac - n/d);
+    const g = gcd(n,d);
+    const rn = n/g, rd = d/g;
+    if (!best || err < best.err) best = { rn, rd, err };
+  }
+  if (!best) return `${whole}`;
+  const fracStr = `${best.rn}/${best.rd}`;
+  return whole > 0 ? `${whole} ${fracStr}` : fracStr;
+}
+function gcd(a,b){ return b === 0 ? a : gcd(b, a % b); }
+
+function render(){
+  const gramsPerCup = INGREDIENTS[sel.value][1];
+
+  if (mode === 'volumeToWeight'){
+    const cupsEquivalent = currentVolume * TO_CUPS[volumeUnitIn];
+    const grams = cupsEquivalent * gramsPerCup;
+    const val = grams / TO_GRAMS[weightUnitOut];
+    const dp = { g:0, kg:2, oz:1, lb:2 }[weightUnitOut];
+
+    document.getElementById('gramsOut').textContent = val.toFixed(dp).replace(/\.00$/,'');
+    document.getElementById('unitOut').textContent = weightUnitOut;
+
+    const oz = grams/28.3495;
+    document.getElementById('altOut').textContent =
+      grams >= 1000 ? `${grams.toFixed(0)} g total` : `${oz.toFixed(1)} oz`;
+
+    const pct = Math.min(100, (grams/500)*100);
+    document.getElementById('fillBar').style.width = pct + '%';
+
+  } else {
+    const grams = currentWeight * TO_GRAMS[weightUnitIn];
+    const cupsEquivalent = gramsPerCup > 0 ? grams / gramsPerCup : 0;
+    const displayVal = cupsEquivalent / TO_CUPS[volumeUnitOut];
+
+    document.getElementById('gramsOut').textContent = displayVal.toFixed(2).replace(/\.00$/,'');
+    document.getElementById('unitOut').textContent = volumeUnitOut;
+    document.getElementById('altOut').textContent = `\u2248 ${decimalToFraction(displayVal)} ${volumeUnitOut}`;
+
+    const pct = Math.min(100, (cupsEquivalent/4)*100);
+    document.getElementById('fillBar').style.width = pct + '%';
+  }
+}
+
+render();
+
+// Register the service worker for offline caching + installability.
+// Guarded so it does nothing (and throws no errors) when the file is
+// just opened directly from disk, where service workers aren't available.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
