@@ -200,6 +200,17 @@
     font-size:13px;
     color:#C9BC9E;
   }
+  .approx-note{
+    margin-top:10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size:11.5px;
+    line-height:1.4;
+    color:var(--wheat);
+    background:rgba(199,154,62,0.12);
+    border:1px solid rgba(199,154,62,0.35);
+    border-radius:8px;
+    padding:8px 10px;
+  }
   .fill-track{
     height:6px;
     border-radius:4px;
@@ -300,6 +311,7 @@
     <div class="result">
       <div><span class="grams" id="gramsOut">0</span><span class="unit" id="unitOut">g</span></div>
       <div class="alt" id="altOut">0 kg</div>
+      <div class="approx-note" id="approxNote" style="display:none;">Estimated density — this one is usually dosed by weight, not measured by cup. Treat as approximate.</div>
       <div class="fill-track"><div class="fill-bar" id="fillBar"></div></div>
 
       <div class="toggle-row" id="unitToggle">
@@ -320,32 +332,53 @@
 </div>
 
 <script>
-// grams per US cup (level, standard baking references)
-const INGREDIENTS = [
-  ["All-purpose flour", 120],
-  ["Bread flour", 127],
-  ["Cake flour", 114],
-  ["Whole wheat flour", 113],
-  ["Cassava flour", 128],
-  ["Maize / corn flour", 122],
-  ["Rice flour", 158],
-  ["Uncooked rice", 185],
-  ["Rolled oats", 90],
-  ["Granulated sugar", 200],
-  ["Brown sugar (packed)", 220],
-  ["Powdered / icing sugar", 120],
-  ["Cocoa powder", 90],
-  ["Butter", 227],
-  ["Margarine", 227],
-  ["Vegetable oil", 218],
-  ["Milk", 240],
-  ["Water", 236],
-  ["Honey", 340],
-  ["Table salt", 292],
-  ["Baking powder", 192],
-  ["Baking soda", 220],
-  ["Active dry yeast", 150],
+// grams per US cup. "approx: true" marks additives that are normally
+// dosed by weight/percentage rather than measured by cup — treat those
+// numbers as a rough estimate, not a precise reference.
+const INGREDIENT_GROUPS = [
+  {
+    label: "Five Grains Bakery ingredients",
+    items: [
+      { name: "Hard flour",              g: 127 },
+      { name: "Soft flour",               g: 114 },
+      { name: "Instant dry yeast",        g: 150 },
+      { name: "Salt",                     g: 292 },
+      { name: "Sugar",                    g: 200 },
+      { name: "Powdered milk",            g: 125 },
+      { name: "Bread improver",           g: 130, approx: true },
+      { name: "Margarine",                g: 227 },
+      { name: "Baking powder",            g: 192 },
+      { name: "Baking soda",              g: 220 },
+      { name: "Vanilla essence",          g: 208 },
+      { name: "Milk flavour",             g: 208, approx: true },
+      { name: "Nutmeg (ground)",          g: 112 },
+      { name: "Mold inhibitor",           g: 130, approx: true },
+    ]
+  },
+  {
+    label: "Other / general baking",
+    items: [
+      { name: "All-purpose flour",        g: 120 },
+      { name: "Whole wheat flour",        g: 113 },
+      { name: "Cassava flour",            g: 128 },
+      { name: "Maize / corn flour",       g: 122 },
+      { name: "Rice flour",               g: 158 },
+      { name: "Uncooked rice",            g: 185 },
+      { name: "Rolled oats",              g: 90  },
+      { name: "Brown sugar (packed)",     g: 220 },
+      { name: "Powdered / icing sugar",   g: 120 },
+      { name: "Cocoa powder",             g: 90  },
+      { name: "Butter",                   g: 227 },
+      { name: "Vegetable oil",            g: 218 },
+      { name: "Milk",                     g: 240 },
+      { name: "Water",                    g: 236 },
+      { name: "Honey",                    g: 340 },
+    ]
+  }
 ];
+
+// Flat list so `sel.value` can keep indexing straight into it, same as before.
+const INGREDIENTS = INGREDIENT_GROUPS.flatMap(g => g.items);
 
 const FRACTIONS = [
   ["1/4", 0.25], ["1/3", 0.3333], ["1/2", 0.5],
@@ -357,10 +390,17 @@ const TO_GRAMS = { g:1, kg:1000, oz:28.3495, lb:453.592 };
 const TO_CUPS  = { cup:1, tbsp:1/16, tsp:1/48 };
 
 const sel = document.getElementById('ingredient');
-INGREDIENTS.forEach(([name], i) => {
-  const o = document.createElement('option');
-  o.value = i; o.textContent = name;
-  sel.appendChild(o);
+let runningIndex = 0;
+INGREDIENT_GROUPS.forEach(group => {
+  const og = document.createElement('optgroup');
+  og.label = group.label;
+  group.items.forEach(item => {
+    const o = document.createElement('option');
+    o.value = runningIndex++;
+    o.textContent = item.name;
+    og.appendChild(o);
+  });
+  sel.appendChild(og);
 });
 
 const fracsWrap = document.getElementById('fracs');
@@ -461,7 +501,10 @@ function decimalToFraction(value){
 function gcd(a,b){ return b === 0 ? a : gcd(b, a % b); }
 
 function render(){
-  const gramsPerCup = INGREDIENTS[sel.value][1];
+  const ingredient = INGREDIENTS[sel.value];
+  const gramsPerCup = ingredient.g;
+
+  document.getElementById('approxNote').style.display = ingredient.approx ? 'block' : 'none';
 
   if (mode === 'volumeToWeight'){
     const cupsEquivalent = currentVolume * TO_CUPS[volumeUnitIn];
