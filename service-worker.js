@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cup-spoon-converter-v1';
+const CACHE_NAME = 'cup-spoon-converter-v2';
 const APP_SHELL = [
   './',
   './index.html',
